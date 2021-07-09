@@ -6,28 +6,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.firebase.ui.database.SnapshotParser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 
 public class RVActivity extends AppCompatActivity
 {
     SwipeRefreshLayout swipeRefreshLayout;
     RecyclerView recyclerView;
+    RVAdapter adapter;
     DAOEmployee dao;
-    FirebaseRecyclerAdapter adapter ;
+    boolean isLoading=false;
+    String key =null;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -38,88 +33,58 @@ public class RVActivity extends AppCompatActivity
         recyclerView.setHasFixedSize(true);
         LinearLayoutManager manager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(manager);
+        adapter= new RVAdapter(this);
+        recyclerView.setAdapter(adapter);
         dao = new DAOEmployee();
-        FirebaseRecyclerOptions<Employee> option =
-                new FirebaseRecyclerOptions.Builder<Employee>()
-                .setQuery(dao.get(), new SnapshotParser<Employee>()
-                {
-                    @NonNull
-                    @Override
-                    public Employee parseSnapshot(@NonNull DataSnapshot snapshot)
-                    {
-                        Employee emp = snapshot.getValue(Employee.class);
-                        emp.setKey(snapshot.getKey());
-                        return emp;
-                    }
-                }).build();
-        adapter = new FirebaseRecyclerAdapter(option)
+        loadData();
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener()
         {
             @Override
-            protected void onBindViewHolder( RecyclerView.ViewHolder viewHolder, int i,Object o)
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy)
             {
-                EmployeeVH vh = (EmployeeVH) viewHolder;
-                Employee emp = (Employee)o;
-                vh.txt_name.setText(emp.getName());
-                vh.txt_position.setText(emp.getPosition());
-                vh.txt_option.setOnClickListener(v->
+                LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int totalItem = linearLayoutManager.getItemCount();
+                int lastVisible = linearLayoutManager.findLastCompletelyVisibleItemPosition();
+                if(totalItem< lastVisible+3)
                 {
-                    PopupMenu popupMenu =new PopupMenu(RVActivity.this,vh.txt_option);
-                    popupMenu.inflate(R.menu.option_menu);
-                    popupMenu.setOnMenuItemClickListener(item->
+                    if(!isLoading)
                     {
-                        switch (item.getItemId())
-                        {
-                            case R.id.menu_edit:
-                                Intent intent=new Intent(RVActivity.this,MainActivity.class);
-                                intent.putExtra("EDIT",emp);
-                                startActivity(intent);
-                                break;
-                            case R.id.menu_remove:
-                                DAOEmployee dao=new DAOEmployee();
-                                dao.remove(emp.getKey()).addOnSuccessListener(suc->
-                                {
-                                    Toast.makeText(RVActivity.this, "Record is removed", Toast.LENGTH_SHORT).show();
-                                }).addOnFailureListener(er->
-                                {
-                                    Toast.makeText(RVActivity.this, ""+er.getMessage(), Toast.LENGTH_SHORT).show();
-                                });
-
-                                break;
-                        }
-                        return false;
-                    });
-                    popupMenu.show();
-                });
+                        isLoading=true;
+                        loadData();
+                    }
+                }
             }
+        });
+    }
 
-            @NonNull
+    private void loadData()
+    {
+        swipeRefreshLayout.setRefreshing(true);
+        dao.get(key).addValueEventListener(new ValueEventListener()
+        {
             @Override
-            public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType)
+            public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-                View view = LayoutInflater.from(RVActivity.this).inflate(R.layout.layout_item,parent,false);
-                return new EmployeeVH(view);
+
+                ArrayList<Employee> emps = new ArrayList<>();
+                for(DataSnapshot data : snapshot.getChildren())
+                {
+                    Employee emp = data.getValue(Employee.class);
+                    emp.setKey(data.getKey());
+                    emps.add(emp);
+                    key = data.getKey();
+                }
+                adapter.setItems(emps);
+                adapter.notifyDataSetChanged();
+                isLoading =false;
+                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
-            public void onDataChanged()
+            public void onCancelled(@NonNull DatabaseError error)
             {
-                Toast.makeText(RVActivity.this, "Data Changed", Toast.LENGTH_SHORT).show();
+                swipeRefreshLayout.setRefreshing(false);
             }
-        };
-        recyclerView.setAdapter(adapter);
-    }
-
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-        adapter.startListening();
-    }
-
-    @Override
-    protected void onStop()
-    {
-        super.onStop();
-        adapter.stopListening();
+        });
     }
 }
