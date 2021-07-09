@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "792138635481",
+    "project_id": "fireapp-4eb13",
+    "storage_bucket": "fireapp-4eb13.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:792138635481:android:f899b671618fd32c6a46c8",
+        "android_client_info": {
+          "package_name": "com.hellokh.sovary.firetest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "792138635481-3jl4houm9heno4uc1f7167gfralcrdl8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3BNevB3voxqfWmAF0F4l6HiQrzNeKPdI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "792138635481-3jl4houm9heno4uc1f7167gfralcrdl8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
