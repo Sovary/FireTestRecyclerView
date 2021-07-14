@@ -24,7 +24,6 @@ public class RVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public void setItems(ArrayList<Employee> emp)
     {
         list.addAll(emp);
-        //Toast.makeText(context, "setItems", Toast.LENGTH_SHORT).show();
     }
 
     @NonNull
@@ -45,7 +44,6 @@ public class RVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     {
         EmployeeVH vh = (EmployeeVH) holder;
         Employee emp = e==null? list.get(position):e;
-        DAOEmployee dao=new DAOEmployee();
         vh.txt_name.setText(emp.getName());
         vh.txt_position.setText(emp.getPosition());
         vh.txt_option.setOnClickListener(v->
@@ -62,11 +60,12 @@ public class RVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         context.startActivity(intent);
                         break;
                     case R.id.menu_remove:
+                        DAOEmployee dao=new DAOEmployee();
                         dao.remove(emp.getKey()).addOnSuccessListener(suc->
                         {
                             Toast.makeText(context, "Record is removed", Toast.LENGTH_SHORT).show();
-                            list.remove(emp);
                             notifyItemRemoved(position);
+                            list.remove(emp);
                         }).addOnFailureListener(er->
                         {
                             Toast.makeText(context, ""+er.getMessage(), Toast.LENGTH_SHORT).show();
@@ -74,7 +73,7 @@ public class RVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
                         break;
                 }
-                return true;
+                return false;
             });
             popupMenu.show();
         });
