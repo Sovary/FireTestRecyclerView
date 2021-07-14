@@ -64,7 +64,8 @@ public class RVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                         dao.remove(emp.getKey()).addOnSuccessListener(suc->
                         {
                             Toast.makeText(context, "Record is removed", Toast.LENGTH_SHORT).show();
-                            //notifyItemRemoved(position);
+                            notifyItemRemoved(position);
+                            list.remove(emp);
                         }).addOnFailureListener(er->
                         {
                             Toast.makeText(context, ""+er.getMessage(), Toast.LENGTH_SHORT).show();
