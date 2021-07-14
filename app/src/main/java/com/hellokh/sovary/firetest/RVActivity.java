@@ -59,15 +59,15 @@ public class RVActivity extends AppCompatActivity
 
     private void loadData()
     {
+        
         swipeRefreshLayout.setRefreshing(true);
-        dao.get(key).addValueEventListener(new ValueEventListener()
+        dao.get(key).addListenerForSingleValueEvent(new ValueEventListener()
         {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot)
             {
-
                 ArrayList<Employee> emps = new ArrayList<>();
-                for(DataSnapshot data : snapshot.getChildren())
+                for (DataSnapshot data : snapshot.getChildren())
                 {
                     Employee emp = data.getValue(Employee.class);
                     emp.setKey(data.getKey());
